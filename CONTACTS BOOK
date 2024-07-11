@@ -1,0 +1,116 @@
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+import pickle
+import os
+class ContactManager:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Contact Manager")
+        self.contacts = {}
+        self.load_contacts()
+        self.create_widgets()
+    def create_widgets(self):
+        tk.Label(self.root, text="Name:").grid(row=0, column=0)
+        self.name_entry = tk.Entry(self.root)
+        self.name_entry.grid(row=0, column=1)
+        tk.Label(self.root, text="Phone Number:").grid(row=1, column=0)
+        self.phone_entry = tk.Entry(self.root)
+        self.phone_entry.grid(row=1, column=1)
+        tk.Label(self.root, text="Email:").grid(row=2, column=0)
+        self.email_entry = tk.Entry(self.root)
+        self.email_entry.grid(row=2, column=1)
+        tk.Label(self.root, text="Address:").grid(row=3, column=0)
+        self.address_entry = tk.Entry(self.root)
+        self.address_entry.grid(row=3, column=1)
+        tk.Button(self.root, text="Add Contact", command=self.add_contact).grid(row=4, column=0)
+        tk.Button(self.root, text="View Contacts", command=self.view_contacts).grid(row=4, column=1)
+        tk.Button(self.root, text="Search Contact", command=self.search_contact).grid(row=5, column=0)
+        tk.Button(self.root, text="Update Contact", command=self.update_contact).grid(row=5, column=1)
+        tk.Button(self.root, text="Delete Contact", command=self.delete_contact).grid(row=6, column=0, columnspan=2)
+        self.contact_list = tk.Listbox(self.root, width=50)
+        self.contact_list.grid(row=7, column=0, columnspan=2)
+    def add_contact(self):
+        name = self.name_entry.get().strip()
+        phone = self.phone_entry.get().strip()
+        email = self.email_entry.get().strip()
+        address = self.address_entry.get().strip()
+        if name and phone:
+            self.contacts[phone] = {'name': name, 'email': email, 'address': address}
+            self.save_contacts()
+            self.clear_entries()
+            self.view_contacts()
+            messagebox.showinfo("Success", "Contact added successfully!")
+        else:
+            messagebox.showerror("Error", "Name and Phone Number are required!")
+    def view_contacts(self):
+        self.contact_list.delete(0, tk.END)
+        for phone, details in self.contacts.items():
+            self.contact_list.insert(tk.END, f"{details['name']} - {phone}")
+    def search_contact(self):
+        query = simpledialog.askstring("Search", "Enter name or phone number:")
+        if query:
+            self.contact_list.delete(0, tk.END)
+            for phone, details in self.contacts.items():
+                if query.lower() in details['name'].lower() or query in phone:
+                    self.contact_list.insert(tk.END, f"{details['name']} - {phone}")
+    def update_contact(self):
+        selected_contact = self.contact_list.get(tk.ACTIVE)
+        if selected_contact:
+            phone = selected_contact.split(' - ')[1]
+            details = self.contacts[phone]
+            self.name_entry.delete(0, tk.END)
+            self.phone_entry.delete(0, tk.END)
+            self.email_entry.delete(0, tk.END)
+            self.address_entry.delete(0, tk.END)
+            self.name_entry.insert(0, details['name'])
+            self.phone_entry.insert(0, phone)
+            self.email_entry.insert(0, details['email'])
+            self.address_entry.insert(0, details['address'])
+            self.add_contact_button = tk.Button(self.root, text="Save Update", command=lambda: self.save_update(phone))
+            self.add_contact_button.grid(row=8, column=0, columnspan=2)
+        else:
+            messagebox.showerror("Error", "No contact selected!")
+    def save_update(self, old_phone):
+        new_name = self.name_entry.get().strip()
+        new_phone = self.phone_entry.get().strip()
+        new_email = self.email_entry.get().strip()
+        new_address = self.address_entry.get().strip()
+        if new_name and new_phone:
+            if old_phone != new_phone and new_phone in self.contacts:
+                messagebox.showerror("Error", "Phone number already exists!")
+                return
+            del self.contacts[old_phone]
+            self.contacts[new_phone] = {'name': new_name, 'email': new_email, 'address': new_address}
+            self.save_contacts()
+            self.clear_entries()
+            self.view_contacts()
+            self.add_contact_button.destroy()
+            messagebox.showinfo("Success", "Contact updated successfully!")
+        else:
+            messagebox.showerror("Error", "Name and Phone Number are required!")
+    def delete_contact(self):
+        selected_contact = self.contact_list.get(tk.ACTIVE)
+        if selected_contact:
+            phone = selected_contact.split(' - ')[1]
+            del self.contacts[phone]
+            self.save_contacts()
+            self.view_contacts()
+            messagebox.showinfo("Success", "Contact deleted successfully!")
+        else:
+            messagebox.showerror("Error", "No contact selected!")
+    def clear_entries(self):
+        self.name_entry.delete(0, tk.END)
+        self.phone_entry.delete(0, tk.END)
+        self.email_entry.delete(0, tk.END)
+        self.address_entry.delete(0, tk.END)
+    def save_contacts(self):
+        with open('contacts.pkl', 'wb') as f:
+            pickle.dump(self.contacts, f)
+    def load_contacts(self):
+        if os.path.exists('contacts.pkl'):
+            with open('contacts.pkl', 'rb') as f:
+                self.contacts = pickle.load(f)
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ContactManager(root)
+    root.mainloop()
