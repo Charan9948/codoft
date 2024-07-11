@@ -1,0 +1,85 @@
+import tkinter as tk
+from tkinter import messagebox
+class CalculatorApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Simple Calculator")
+        self.num1_label = tk.Label(root, text="Enter first number:")
+        self.num1_label.pack(pady=5)
+        self.num1_entry = tk.Entry(root)
+        self.num1_entry.pack(pady=5)
+        self.num2_label = tk.Label(root, text="Enter second number:")
+        self.num2_label.pack(pady=5)
+        self.num2_entry = tk.Entry(root)
+        self.num2_entry.pack(pady=5)
+        self.add_button = tk.Button(root, text="+", command=self.add)
+        self.add_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.subtract_button = tk.Button(root, text="-", command=self.subtract)
+        self.subtract_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.multiply_button = tk.Button(root, text="*", command=self.multiply)
+        self.multiply_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.divide_button = tk.Button(root, text="/", command=self.divide)
+        self.divide_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.modulo_button = tk.Button(root, text="%", command=self.modulo)
+        self.modulo_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.power_button = tk.Button(root, text="^", command=self.power)
+        self.power_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.square_button = tk.Button(root, text="x²", command=self.square)
+        self.square_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.result_label = tk.Label(root, text="Results:\n")
+        self.result_label.pack(pady=20)
+        self.result_column = tk.Text(root, width=40, height=10)
+        self.result_column.pack(pady=5)
+    def add(self):
+        self.calculate('+')
+    def subtract(self):
+        self.calculate('-')
+    def multiply(self):
+        self.calculate('*')
+    def divide(self):
+        self.calculate('/')
+    def modulo(self):
+        self.calculate('%')
+    def power(self):
+        self.calculate('^')
+    def square(self):
+        self.calculate('x²')
+    def calculate(self, operation):
+        try:
+            num1 = float(self.num1_entry.get())
+            num2 = float(self.num2_entry.get()) if operation != 'x²' else None
+            result = None
+
+            if operation == '+':
+                result = num1 + num2
+            elif operation == '-':
+                result = num1 - num2
+            elif operation == '*':
+                result = num1 * num2
+            elif operation == '/':
+                if num2 != 0:
+                    result = num1 / num2
+                else:
+                    messagebox.showerror("Error", "Division by zero is not allowed.")
+                    return
+            elif operation == '%':
+                if num2 != 0:
+                    result = num1 % num2
+                else:
+                    messagebox.showerror("Error", "Division by zero is not allowed.")
+                    return
+            elif operation == '^':
+                result = num1 ** num2
+            elif operation == 'x²':
+                result = num1 ** 2
+            else:
+                messagebox.showerror("Error", "Invalid operation.")
+                return
+            self.result_label.config(text=f"Result: {result}")
+            self.result_column.insert(tk.END, f"{num1} {operation} {num2 if num2 is not None else ''} = {result}\n")
+        except ValueError:
+            messagebox.showerror("Error", "Invalid input. Please enter numeric values.")
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = CalculatorApp(root)
+    root.mainloop()
